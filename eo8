@@ -1,0 +1,27 @@
+# Nate Paarlberg and Jacob Stetka
+import math
+def input_weight():
+    return 1
+
+def hidden_weight():
+    return [.1,-.1]
+def true_weights():
+    return -.2
+def false_weights():
+    return .3
+def feed_forward():
+    print("Input Layer weights: Left to hidden left .2, Right to hidden left .4, Left to hidden right -.3, Right to hidden right .3")
+    print("Hidden Layer weights: Left to true .2, Right to true .5, Left to false -.2, Right to false -.4")
+    for inputLeft in range (2):
+        for inputRight in range(2):
+            print(f" initial weights: {inputLeft}, {inputRight}")
+            leftNeuron = 1/(1+math.exp(-(inputLeft * .2 + .4 * inputRight + hidden_weight()[0])))
+            rightNeuron = 1/(1+math.exp(-(inputLeft *(-.3)+ .3 * inputRight + hidden_weight()[1])))
+            leftOutput = 1/(1+math.exp(-(true_weights() + .5 * rightNeuron+ leftNeuron*.3)))
+            rightOutput = 1/(1+math.exp(-(false_weights()+ leftNeuron* -.2 + rightNeuron*-.4)))
+            print(f"Left side: {leftNeuron:.2f}, Right side: {rightNeuron:.2f}")
+            print(f"XOR Forward Progression result: True: {leftOutput:.2f}, False: {rightOutput:.2f}")
+
+def main():
+    feed_forward()
+main()
