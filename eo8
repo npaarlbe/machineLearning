@@ -2,7 +2,8 @@
 import math
 def input_weight():
     return 1
-
+def sigmoid(x):
+    return 1/(1+math.exp(-x))
 def hidden_weight():
     return [.1,-.1]
 def true_weights():
@@ -12,6 +13,8 @@ def false_weights():
 def feed_forward():
     print("Input Layer weights: Left to hidden left .2, Right to hidden left .4, Left to hidden right -.3, Right to hidden right .3")
     print("Hidden Layer weights: Left to true .2, Right to true .5, Left to false -.2, Right to false -.4")
+    
+
     for inputLeft in range (2):
         for inputRight in range(2):
             print(f" initial weights: {inputLeft}, {inputRight}")
@@ -22,6 +25,120 @@ def feed_forward():
             print(f"Left side: {leftNeuron:.2f}, Right side: {rightNeuron:.2f}")
             print(f"XOR Forward Progression result: True: {leftOutput:.2f}, False: {rightOutput:.2f}")
 
+def back_prop():
+
+    hidden1Left = [.2, .4]
+    hidden2Right = [-.3, .3]
+    hidden1Bias = hidden_weight()[0]
+    hidden2Bias = hidden_weight()[1]
+    output1 = [.3, .5]        
+    output2 = [-.2, -.4]
+    trueBias = true_weights()
+    falseBias = false_weights()
+
+    patterns = [[0,0,0,1],[0,1,1,0],[1,0,1,0],[1,1,0,1]]
+    # patterns = [[1,1,0,1]]
+
+    epochs = 1000
+    learning_rate = 1
+    allCorrectEpoch = None
+    
+
+    #for i in range(epochs):
+    for i in range(epochs):
+        allCorrect = True
+        total_error = 0
+        for pattern in patterns:
+            input1, input2, target_true, target_false = pattern
+            # print(f"\nPattern: Input1: {input1}, Input2: {input2}, Target True: {target_true}, Target False: {target_false}")
+            # this calcuates the output from the hidden layer
+            hidden_left = 1/(1+math.exp(-(input1 * hidden1Left[0] + input2 * hidden1Left[1] + hidden1Bias)))
+            hidden_right = 1/(1+math.exp(-(input1 * hidden2Right[0] + input2 * hidden2Right[1] + hidden2Bias)))
+
+            # Calculate output layer
+            trueLnet = hidden_left * output1[0] + hidden_right * output1[1] + trueBias
+            falseRnet = hidden_left * output2[0] + hidden_right * output2[1] + falseBias
+
+            output_true = 1/(1+math.exp(-trueLnet))
+            output_false = 1/(1+math.exp(-falseRnet))
+            # print(f"Output True: {output_true}, Output False: {output_false}")
+
+            error_true = output_true * (1 - output_true) * (target_true - output_true)
+            error_false = output_false * (1 - output_false) * (target_false - output_false)
+
+            hidden_left_error = hidden_left * (1 - hidden_left) * (error_true * output1[0] + error_false * output2[0])
+            hidden_right_error = hidden_right * (1 - hidden_right) * (error_true * output1[1] + error_false * output2[1])
+
+            # print(f"Error True: {error_true}, Error False: {error_false}")
+            # print(f"Hidden Left Error: {hidden_left_error}, Hidden Right Error: {hidden_right_error}")
+
+            # Update weights for output layer
+            trueBias = trueBias + error_true * learning_rate
+            falseBias = falseBias + error_false * learning_rate
+            # print (f"Updated True Bias: {trueBias}, Updated False Bias: {falseBias}")
+            output1[0] = output1[0] + error_true * hidden_left * learning_rate
+            output1[1] = output1[1] + error_true * hidden_right * learning_rate
+            output2[0] = output2[0] + error_false * hidden_left * learning_rate
+            output2[1] = output2[1] + error_false * hidden_right * learning_rate
+            # print(f"Updated True Weights: {output1}, Updated False Weights: {output2}")
+
+            hidden1Bias = hidden1Bias + hidden_left_error * learning_rate
+            hidden2Bias = hidden2Bias + hidden_right_error * learning_rate
+            # print(f"Updated Hidden Left Bias: {hidden1Bias}, Updated Hidden Right Bias: {hidden2Bias}")
+
+            hidden1Left[0] = input1 * learning_rate * hidden_left_error + hidden1Left[0]
+            hidden1Left[1] = input2 * learning_rate * hidden_left_error + hidden1Left[1]
+            hidden2Right[0] = input1 * learning_rate * hidden_right_error + hidden2Right[0]
+            hidden2Right[1] = input2 * learning_rate * hidden_right_error + hidden2Right[1]
+            total_error += abs(target_true - output_true) + abs(target_false - output_false)
+           # print(f"Updated Hidden Left Weights: {hidden1Left}, Updated Hidden Right Weights: {hidden2Right}")
+
+        #test after each epoch and see what each patterns are
+        print(f"Epoch {i+1}/{epochs}, Total Error: {total_error}")
+        for pattern in patterns:
+            input1, input2, target_true, target_false = pattern
+            hidden_left = 1/(1+math.exp(-(input1 * hidden1Left[0] + input2 * hidden1Left[1] + hidden1Bias)))
+            hidden_right = 1/(1+math.exp(-(input1 * hidden2Right[0] + input2 * hidden2Right[1] + hidden2Bias)))
+
+            trueLnet = hidden_left * output1[0] + hidden_right * output1[1] + trueBias
+            falseRnet = hidden_left * output2[0] + hidden_right * output2[1] + falseBias
+
+            output_true = 1/(1+math.exp(-trueLnet))
+            output_false = 1/(1+math.exp(-falseRnet))
+            print(f"Input: {input1}, {input2} => Output True: {output_true:.4f}, Output False: {output_false:.4f} | Target True: {target_true}, Target False: {target_false}")
+            # Predict True if True prob > False prob, else predict False
+            pred_true = 1 if output_true > output_false else 0
+            if pred_true != target_true:
+                allCorrect = False
+        if allCorrect:
+            if allCorrectEpoch is None:
+                allCorrectEpoch = i + 1
+            print(f"All patterns correctly classified in epoch {i+1}. Stopping training.")
+            break
+    print(f"All correct epoch: {allCorrectEpoch}")
+    print("Test with final weights")
+    for pattern in patterns:
+        input1, input2, target_true, target_false = pattern
+        hidden_left = 1/(1+math.exp(-(input1 * hidden1Left[0] + input2 * hidden1Left[1] + hidden1Bias)))
+        hidden_right = 1/(1+math.exp(-(input1 * hidden2Right[0] + input2 * hidden2Right[1] + hidden2Bias)))
+
+        trueLnet = hidden_left * output1[0] + hidden_right * output1[1] + trueBias
+        falseRnet = hidden_left * output2[0] + hidden_right * output2[1] + falseBias
+
+        output_true = 1/(1+math.exp(-trueLnet))
+        output_false = 1/(1+math.exp(-falseRnet))
+        print(f"Input: {input1}, {input2} => Output True: {output_true:.4f}, Output False: {output_false:.4f} | Target True: {target_true}, Target False: {target_false}")
+
+def testWeights():
+    pass
+    
 def main():
+    print("XOR Neural Network - Initial Feed Forward Test")
+    print("Initial weights from class worksheets")
+    print("\nFeed-forward for all XOR patterns:")
     feed_forward()
+    print("\nBack-propagation")
+    back_prop()
+
+    
 main()
