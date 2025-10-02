@@ -1,0 +1,74 @@
+# Nate Paarlberg and Jacob Stetka
+import numpy as np
+import warnings
+ 
+from sklearn.neural_network import MLPClassifier
+warnings.filterwarnings("ignore")
+X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+y = np.array([0, 1, 1, 0])
+
+# clf = MLPClassifier(hidden_layer_sizes=(2,), activation='logistic', solver='lbfgs')
+# for i in range(10):
+#     clf.fit(X, y)
+#     print(clf.predict(X))
+activationTypes = ['identity', 'logistic', 'tanh', 'relu']
+solverTypes = ['lbfgs', 'sgd', 'adam']
+totalCorrect = 0
+for j in range(2,5):
+    for k in activationTypes:
+        for l in solverTypes:
+            correct = 0
+            print (f"Hidden Layer Size: {j}, Activation: {k}, Solver: {l}")
+            clf = MLPClassifier(hidden_layer_sizes=(j,2), activation=k, solver=l)
+            for i in range(100):
+                clf.fit(X, y)
+                #print(clf.predict(X))
+                if (clf.predict(X) == np.array([0, 1, 1, 0])).all():
+                    correct += 1
+                    totalCorrect += 1
+
+            print(f"Correct: {correct} out of 100")
+              
+print(f"Total Correct: {totalCorrect} out of 3600")
+    
+
+"""
+1) Run the above code 10 times as originally posted.  What is the outcome?  Why?
+The outcome is [1 1 1 0] every time, because the model the random state ensures the same initialization each time, meaning the same weights. Also there is only one hidden layer with 2 nodes. 
+
+2) Modify the code to obviate the problem from #1.  Run it 10 times again.
+What is the outcome?  Why?
+I deleted the random state parameter, and ran it 10 times, and the outcome was different most times. The weights were different, because I wasn't setting to the same random state each time. 
+
+3) What are my activation function choices for the MLP classifier in sklearn?
+The code uses logistic as their activation function, but I could also use identity, tanh, or relu.
+
+4) What are my solver (optimizer) function choices for the MLP classifier in sklearn?
+The code uses lbfgs as their solver function, but I could also use sgd or adam.
+
+5) As currently configured (do not worry about undeclared hyperparameters), what
+are the hyperparameters that we could modify in an experimental design?  (There are
+4, but one of them is not immediately obvious!)  What is the difference between
+parameters and hyperparameters in a ML model?
+We could modify hidden_layer node size, hidden_layer layer size, activation, solver, and learning rate. These difference between parameters and hyperparameters is that parameters are learned from the data during training, while hyperparameters are set before training and control the learning process.
+
+6) Besides looking up help documentation, what is a quick way to check additional
+hyperparameters that may be available?
+You can hover your mouse over the parameter in your IDE, and it will show you the documentation for that parameter, including other hyperparameters that may be available. This is in VSCode.
+
+7) Set up an experiment that will compare all combinations of the 3 obvious hyperparameters
+(you will have to select a set of values for one of them) so that the most effective training
+combination is found.  What appears to be the most effective combination?
+The most effective combination is: Hidden Layer Size: 4, Activation: logistic, Solver: lbfgs, it got 100 out of 100 correct. Also notiable Hidden Layer Size: 4, Activation: tanh, Solver: lbfgs, it got 99 out of 100 correct.
+
+
+
+8) How does the above experiment relate to a "real world" application of a MLP/BPNN to a
+real world dataset?  What are you really demonstrating?
+This experiment relates to a real world application of a MLP/BPNN to a real world dataset because it shows how different hyperparameters can affect the performance of the model. In a real world application, you would want to find the best combination of hyperparameters to get the best performance on your dataset. You are really demonstrating the importance of hyperparameter tuning in machine learning.
+
+9) Modify the experiment to run with 2 output nodes (left output node represents True, right
+output node represents False).  How does this new hyperparameter change the outcome of the
+experiment?
+
+"""
